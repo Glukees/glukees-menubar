@@ -1,13 +1,14 @@
-import { nativeTheme, nativeImage } from 'electron';
+import { nativeTheme, nativeImage, NativeImage } from 'electron';
 import clamp from 'lodash/clamp'
 import { menubar } from 'menubar'
 import sharp from 'sharp'
+import { io } from 'socket.io-client'
 
 const getColor = (value?: number) => {
   const defaultColor = nativeTheme.shouldUseDarkColors ? 'white' : 'black'
   if (typeof value !== 'number') return defaultColor
 
-  const isInRange = clamp(4, value, 10) === value
+  const isInRange = clamp(value, 4, 10) === value
   return isInRange ? defaultColor : 'red'
 }
 
@@ -46,19 +47,45 @@ const init = async () => {
     }
   });
 
-  mb.on('ready', () => updateIcon());
-
-  async function updateIcon() {
+  mb.on('ready', async () => {
     const data = await fetch('https://api.glukees.online/current')
     const result = await data.json()
+
+    updateIcon(result.value, (icon) => mb.tray.setImage(icon));
+    initWebsocketConnection((data: any) => {
+      updateIcon(data.current.value, (icon) => mb.tray.setImage(icon))
+    })
+  })
+}
+
+async function updateIcon(value: number, cb: (icon: NativeImage) => any) {
+  const color = getColor(value)
+  const icon = await getIcon(value, color)
+
+  cb(icon)
+}
+
+const initWebsocketConnection = (onData: (data: any) => any) => {
+  const socket = io('https://api.glukees.online');
+
+  socket.on('data', onData)
+
+  // Handle process exit
+  process.on('exit', (code) => {
+    console.log(`Process is exiting with code ${code}`);
     
-    const color = getColor(result.value)
-    const icon = await getIcon(result.value, color)
-  
-    mb.tray.setImage(icon)
-  
-    setTimeout(() => updateIcon(), 60000)
-  }
+    // Close WebSocket connection before exiting
+    socket.close();
+  });
+
+  // Handle Ctrl+C or other termination signals
+  process.on('SIGINT', () => {
+    console.log('Received termination signal. Closing WebSocket connection.');
+    
+    // Close WebSocket connection before exiting
+    socket.close();
+    process.exit();
+  });
 }
 
 init()
