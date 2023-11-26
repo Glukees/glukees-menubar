@@ -11,7 +11,8 @@
         "start": "yarn build && electron ./dist"
     },
     "dependencies": {
-        "menubar": "^9.3.0"
+        "menubar": "^9.3.0",
+        "sharp": "^0.32.6"
     },
     "devDependencies": {
         "electron": "^27.1.2",
