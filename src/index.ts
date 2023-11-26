@@ -1,37 +1,64 @@
-import { app, nativeTheme, nativeImage } from 'electron';
-import fs from 'fs'
-import path from 'path'
+import { nativeTheme, nativeImage } from 'electron';
+import clamp from 'lodash/clamp'
 import { menubar } from 'menubar'
 import sharp from 'sharp'
 
-const mb = menubar({
-  index: 'https://glukees.online',
-  showDockIcon: false,
-  showOnAllWorkspaces: false,
-  browserWindow: {
-    skipTaskbar: false,
-    width: 480,
-    height: 240,
-    resizable: false,
-  }
-});
+const getColor = (value?: number) => {
+  const defaultColor = nativeTheme.shouldUseDarkColors ? 'white' : 'black'
+  if (typeof value !== 'number') return defaultColor
 
-mb.on('ready', () => {
-  updateIcon()
-});
+  const isInRange = clamp(4, value, 10) === value
+  return isInRange ? defaultColor : 'red'
+}
 
-async function updateIcon() {
-  const data = await fetch('https://api.glukees.online/current')
-  const result = await data.json()
-  
-  const color = nativeTheme.shouldUseDarkColors ? 'white' : 'black'
+const getIcon = async (value: string | number, color: string) => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-    <text x="4" y="16" font-family="Arial" font-size="12" fill="${color}">${result.value.toFixed(1)}</text>
+    <text
+      x="50%"
+      y="16"
+      dominant-baseline="middle"
+      text-anchor="middle"
+      font-family="Arial"
+      font-weight="bold"
+      font-size="12"
+      fill="${color}"
+    >
+      ${typeof value === 'string' ? value : value.toFixed(1)}
+    </text>
   </svg>`;
 
   const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-  const icon = nativeImage.createFromBuffer(pngBuffer)
-  mb.tray.setImage(icon)
-
-  setTimeout(() => updateIcon(), 60000)
+  return nativeImage.createFromBuffer(pngBuffer)
 }
+
+const init = async () => {
+  const icon = await getIcon('...', getColor())
+  const mb = menubar({
+    index: 'https://glukees.online',
+    icon,
+    showDockIcon: false,
+    showOnAllWorkspaces: false,
+    browserWindow: {
+      skipTaskbar: false,
+      width: 480,
+      height: 240,
+      resizable: false,
+    }
+  });
+
+  mb.on('ready', () => updateIcon());
+
+  async function updateIcon() {
+    const data = await fetch('https://api.glukees.online/current')
+    const result = await data.json()
+    
+    const color = getColor(result.value)
+    const icon = await getIcon(result.value, color)
+  
+    mb.tray.setImage(icon)
+  
+    setTimeout(() => updateIcon(), 60000)
+  }
+}
+
+init()
