@@ -1,4 +1,4 @@
-import { nativeTheme, nativeImage } from 'electron';
+import { app, nativeTheme, nativeImage } from 'electron';
 import { menubar } from 'menubar'
 import sharp from 'sharp'
 
@@ -10,6 +10,8 @@ const mb = menubar({
     resizable: false,
   }
 });
+
+app.dock.hide(); // Hide the app from the dock and the App Switcher
 
 mb.on('ready', () => {
   updateIcon()
