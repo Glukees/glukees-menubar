@@ -1,17 +1,20 @@
 import { app, nativeTheme, nativeImage } from 'electron';
+import fs from 'fs'
+import path from 'path'
 import { menubar } from 'menubar'
 import sharp from 'sharp'
 
 const mb = menubar({
   index: 'https://glukees.online',
+  showDockIcon: false,
+  showOnAllWorkspaces: false,
   browserWindow: {
+    skipTaskbar: false,
     width: 480,
     height: 240,
     resizable: false,
   }
 });
-
-app.dock.hide(); // Hide the app from the dock and the App Switcher
 
 mb.on('ready', () => {
   updateIcon()

@@ -6,6 +6,13 @@
     "repository": "git@github.com:glukees/glukees-menubar.git",
     "author": "keesvanlierop <keesvanlierop@hotmail.com>",
     "license": "MIT",
+    "build": {
+        "mac": {
+            "extendInfo": {
+                "LSUIElement": true
+            }
+        }
+    },
     "scripts": {
         "build": "rimraf ./dist && tsc",
         "start": "yarn build && electron ./dist",
