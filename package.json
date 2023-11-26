@@ -1,0 +1,12 @@
+{
+  "name": "glukees-menubar",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:keesvanlierop/glukees.git",
+  "author": "keesvanlierop <keesvanlierop@hotmail.com>",
+  "license": "MIT",
+  "private": "true",
+  "workspaces": [
+    "menubar"
+  ]
+}
