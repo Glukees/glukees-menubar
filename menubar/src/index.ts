@@ -2,7 +2,14 @@ import { nativeTheme, nativeImage } from 'electron';
 import { menubar } from 'menubar'
 import sharp from 'sharp'
 
-const mb = menubar();
+const mb = menubar({
+  index: 'https://glukees.online',
+  browserWindow: {
+    width: 480,
+    height: 240,
+    resizable: false,
+  }
+});
 
 mb.on('ready', () => {
   updateIcon()
