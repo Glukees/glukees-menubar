@@ -16,7 +16,7 @@
     "scripts": {
         "build": "rimraf ./dist && tsc",
         "start": "yarn build && electron ./dist",
-        "package": "yarn build && npx electron-packager . --out=out"
+        "package": "yarn build && npx electron-packager . --out=out --overwrite"
     },
     "dependencies": {
         "lodash": "^4.17.21",
