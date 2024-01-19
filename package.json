@@ -7,16 +7,26 @@
     "author": "keesvanlierop <keesvanlierop@hotmail.com>",
     "license": "MIT",
     "build": {
+        "appId": "com.glukees.glukees",
+        "productName": "Glukees",
+        "directories": {
+            "output": "out"
+        },
         "mac": {
             "extendInfo": {
                 "LSUIElement": true
             }
+        },
+        "win": {
+            "target": "nsis"
         }
     },
+    "npmRebuild": false,
     "scripts": {
         "build": "rimraf ./dist && tsc",
         "start": "yarn build && electron ./dist",
-        "package": "yarn build && npx electron-packager . --out=out --overwrite"
+        "package": "yarn build && npx electron-packager . --out=out --overwrite",
+        "package:windows": "yarn package --platform=win32 --arch=x64"
     },
     "dependencies": {
         "lodash": "^4.17.21",

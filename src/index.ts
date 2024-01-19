@@ -1,4 +1,4 @@
-import { nativeTheme, nativeImage, NativeImage } from 'electron';
+import { nativeTheme, nativeImage, NativeImage, Notification } from 'electron';
 import clamp from 'lodash/clamp'
 import { menubar } from 'menubar'
 import sharp from 'sharp'
@@ -8,8 +8,11 @@ const getColor = (value?: number) => {
   const defaultColor = nativeTheme.shouldUseDarkColors ? 'white' : 'black'
   if (typeof value !== 'number') return defaultColor
 
-  const isInRange = clamp(value, 4, 10) === value
-  return isInRange ? defaultColor : 'red'
+  const isInRange = clamp(value, 4, 8) === value
+  if (isInRange) return defaultColor
+
+  const isInWarningRange = value === 3.9 || clamp(value, 8, 10) === value
+  return isInWarningRange ? 'orange' : 'red'
 }
 
 const getIcon = async (value: string | number, color: string) => {
@@ -51,11 +54,14 @@ const init = async () => {
     const data = await fetch('https://api.glukees.online/current')
     const result = await data.json()
 
-    updateIcon(result.value, (icon) => mb.tray.setImage(icon));
-    initWebsocketConnection((data: any) => {
-      updateIcon(data.current.value, (icon) => mb.tray.setImage(icon))
-    })
+    processValue(result.value)
+    initWebsocketConnection((data: any) => processValue(data.current.value))
   })
+
+  const processValue = (value: number) => {
+    updateIcon(value, (icon) => mb.tray.setImage(icon));
+    sendOutOfBoundsNotification(value)
+  }
 }
 
 async function updateIcon(value: number, cb: (icon: NativeImage) => any) {
@@ -86,6 +92,21 @@ const initWebsocketConnection = (onData: (data: any) => any) => {
     socket.close();
     process.exit();
   });
+}
+
+let cachedValue: number
+const sendOutOfBoundsNotification = (value: number) => {
+  const isInRange = clamp(value, 4, 9)
+  const isCachedValueInRange = cachedValue ? clamp(cachedValue, 4, 9) : true
+  if (isInRange || !isCachedValueInRange) return
+
+  const body = `Te ${value > 9 ? 'hoog' : 'laag'}, sukkel.`
+  cachedValue = value
+
+  return new Notification({
+    title: 'Glukees alarm',
+    body
+  }).show()
 }
 
 init()
